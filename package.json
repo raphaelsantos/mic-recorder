@@ -7,7 +7,7 @@
     "build": "npx tsc -p .",
     "watch": "npx tsc -p . -w"
   },
-  "repository": "https://github.com/ikkai/mp3-recorder.git",
+  "repository": "https://github.com/paraself/mp3-recorder.git",
   "author": "Yves Wang <yw@ikk.ai>",
   "contributors": [
     "Vitor Buzinaro <vitor@close.io>"
