@@ -12,7 +12,9 @@ var Encoder = /** @class */ (function () {
         this.maxSamples = 1152;
         this.samplesMono = null;
         this.dataBuffer = [];
-        Object.assign(this.config, config);
+        if (config) {
+            Object.assign(this.config, config);
+        }
         this.mp3Encoder = new Mp3Encoder(1, this.config.sampleRate, this.config.bitRate);
         this.clearBuffer();
     }

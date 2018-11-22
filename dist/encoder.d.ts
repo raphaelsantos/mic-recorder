@@ -1,6 +1,6 @@
 interface IConfig {
-    sampleRate: number;
-    bitRate: number;
+    sampleRate?: number;
+    bitRate?: number;
 }
 declare type Buffer = Int8Array;
 declare class Encoder {
@@ -13,7 +13,7 @@ declare class Encoder {
     private maxSamples;
     private samplesMono;
     private dataBuffer;
-    constructor(config: IConfig);
+    constructor(config?: IConfig);
     /**
      * Clear active buffer
      */

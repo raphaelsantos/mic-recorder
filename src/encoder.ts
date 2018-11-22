@@ -1,8 +1,8 @@
 import { Mp3Encoder } from 'lamejs'
 
 interface IConfig {
-  sampleRate: number
-  bitRate: number
+  sampleRate?: number
+  bitRate?: number
 }
 
 type Buffer = Int8Array
@@ -21,12 +21,14 @@ class Encoder {
   private samplesMono: Int16Array | null = null
   private dataBuffer: Array<Int8Array> = []
 
-  constructor(config: IConfig) {
-    Object.assign(this.config, config)
+  constructor(config?: IConfig) {
+    if (config) {
+      Object.assign(this.config, config)
+    }
     this.mp3Encoder = new Mp3Encoder(
       1,
-      this.config.sampleRate,
-      this.config.bitRate
+      this.config.sampleRate!,
+      this.config.bitRate!
     )
     this.clearBuffer()
   }

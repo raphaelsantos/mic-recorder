@@ -31,8 +31,10 @@ class MicRecorder {
   private startTime: number = 0
   private timerToStart: number = -1
   private lameEncoder: Encoder | null = null
-  constructor(config: IConfig) {
-    Object.assign(this.config, config)
+  constructor(config?: IConfig) {
+    if (config) {
+      Object.assign(this.config, config)
+    }
   }
 
   /**

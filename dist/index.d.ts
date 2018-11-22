@@ -2,7 +2,7 @@ interface IConfig {
     /**
      * 128 or 160 kbit/s – mid-range bitrate quality
      */
-    bitRate: number;
+    bitRate?: number;
     /**
      * There is a known issue with some macOS machines, where the recording
      * will sometimes have a loud 'pop' or 'pop-click' sound. This flag
@@ -10,9 +10,9 @@ interface IConfig {
      * the begining of the recording. It also helps to remove the mouse
      * "click" sound from the output mp3 file.
      */
-    startRecordingAt: number;
-    deviceId: string;
-    sampleRate: number;
+    startRecordingAt?: number;
+    deviceId?: string;
+    sampleRate?: number;
 }
 declare class MicRecorder {
     private config;
@@ -23,7 +23,7 @@ declare class MicRecorder {
     private startTime;
     private timerToStart;
     private lameEncoder;
-    constructor(config: IConfig);
+    constructor(config?: IConfig);
     /**
      * Starts to listen for the microphone sound
      * @param {MediaStream} stream

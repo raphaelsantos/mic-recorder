@@ -5,7 +5,7 @@ var MicRecorder = /** @class */ (function () {
             bitRate: 128,
             startRecordingAt: 300,
             deviceId: 'default',
-            sampleRate: -1
+            sampleRate: 44000
         };
         this.activeStream = null;
         this.context = null;
@@ -14,7 +14,9 @@ var MicRecorder = /** @class */ (function () {
         this.startTime = 0;
         this.timerToStart = -1;
         this.lameEncoder = null;
-        Object.assign(this.config, config);
+        if (config) {
+            Object.assign(this.config, config);
+        }
     }
     /**
      * Starts to listen for the microphone sound
