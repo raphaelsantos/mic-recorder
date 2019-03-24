@@ -1,13 +1,15 @@
-# Microphone Recorder to Mp3
+# Microphone Recorder to Mp3/Wav
 
-Record your microphone audio input and get an ```audio/mp3``` file in the end. Written in TypeScript
+Record your microphone audio input and get an ``audio/mp3`` or ``audio/wav`` file in the end.
+
+Written in TypeScript
 
 # Install
 
 ## npm
 
 ```bash
-npm install mp3-recorder
+npm install audio-recorder
 ```
 
 # Development
@@ -27,11 +29,12 @@ npm run build
 # How to use
 
 ```js
-const MicRecorder = require('mp3-recorder');
+const MicRecorder = require('audio-recorder');
 
 // New instance
 const recorder = new MicRecorder({
-  bitRate: 128
+  bitRate: 128,
+  encoder: 'mp3' // default is mp3, can be wav as well
 });
 
 // Start recording. Browser will request permission to use your microphone.
@@ -43,27 +46,24 @@ recorder.start().then(() => {
 
 // Once you are done singing your best song, stop and get the mp3.
 recorder
-.stop()
-.getMp3().then(([buffer, blob]) => {
-  // do what ever you want with buffer and blob
-  // Example: Create a mp3 file and play
-  const file = new File(buffer, 'me-at-thevoice.mp3', {
-    type: blob.type,
-    lastModified: Date.now()
+  .stop()
+  .getAudio()
+  .then(([buffer, blob]) => {
+    // do what ever you want with buffer and blob
+    // Example: Create a mp3 file and play
+    const file = new File(buffer, 'me-at-thevoice.mp3', {
+      type: blob.type,
+      lastModified: Date.now()
+    });
+
+    const player = new Audio(URL.createObjectURL(file));
+    player.play();
+
+  }).catch((e) => {
+    alert('We could not retrieve your message');
+    console.log(e);
   });
-
-  const player = new Audio(URL.createObjectURL(file));
-  player.play();
-
-}).catch((e) => {
-  alert('We could not retrieve your message');
-  console.log(e);
-});
 ```
-
-- Check the [samples](https://github.com/closeio/mic-recorder-to-mp3/tree/master/samples) folder for more examples.
-
-- [Live example on jsfiddle](https://jsfiddle.net/8u5fbpx6/1/)
 
 ## Lamejs Notice
 

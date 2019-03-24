@@ -1,11 +1,21 @@
-import Encoder from './encoder';
-var MicRecorder = /** @class */ (function () {
-    function MicRecorder(config) {
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import Mp3Encoder from './mp3-encoder';
+import WavEncoder from './wav-encoder';
+class MicRecorder {
+    constructor(config) {
         this.config = {
             bitRate: 128,
             startRecordingAt: 300,
             deviceId: 'default',
-            sampleRate: 44000
+            sampleRate: 44000,
+            encoder: 'mp3'
         };
         this.activeStream = null;
         this.context = null;
@@ -13,7 +23,7 @@ var MicRecorder = /** @class */ (function () {
         this.processor = null;
         this.startTime = 0;
         this.timerToStart = -1;
-        this.lameEncoder = null;
+        this.__encoder = null;
         if (config) {
             Object.assign(this.config, config);
         }
@@ -22,12 +32,11 @@ var MicRecorder = /** @class */ (function () {
      * Starts to listen for the microphone sound
      * @param {MediaStream} stream
      */
-    MicRecorder.prototype.addMicrophoneListener = function (stream) {
-        var _this = this;
+    addMicrophoneListener(stream) {
         this.activeStream = stream;
         // This prevents the weird noise once you start listening to the microphone
-        this.timerToStart = setTimeout(function () {
-            delete _this.timerToStart;
+        this.timerToStart = setTimeout(() => {
+            delete this.timerToStart;
         }, this.config.startRecordingAt);
         // Set up Web Audio API to process data from the media stream (microphone).
         this.microphone =
@@ -36,24 +45,24 @@ var MicRecorder = /** @class */ (function () {
         this.processor = this.context && this.context.createScriptProcessor(0, 1, 1);
         // Add all buffers from LAME into an array.
         this.processor &&
-            (this.processor.onaudioprocess = function (event) {
-                if (_this.timerToStart) {
+            (this.processor.onaudioprocess = (event) => {
+                if (this.timerToStart) {
                     return;
                 }
                 // Send microphone data to LAME for MP3 encoding while recording.
-                _this.lameEncoder &&
-                    _this.lameEncoder.encode(event.inputBuffer.getChannelData(0));
+                this.__encoder &&
+                    this.__encoder.encode(event.inputBuffer.getChannelData(0));
             });
         // Begin retrieving microphone data.
         this.microphone && this.processor && this.microphone.connect(this.processor);
         this.processor &&
             this.context &&
             this.processor.connect(this.context.destination);
-    };
+    }
     /**
      * Disconnect microphone, processor and remove activeStream
      */
-    MicRecorder.prototype.stop = function () {
+    stop() {
         if (this.processor && this.microphone) {
             // Clean up the Web Audio API resources.
             this.microphone.disconnect();
@@ -66,58 +75,60 @@ var MicRecorder = /** @class */ (function () {
             this.processor.onaudioprocess = null;
             // Stop all audio tracks. Also, removes recording icon from chrome tab
             this.activeStream &&
-                this.activeStream.getAudioTracks().forEach(function (track) { return track.stop(); });
+                this.activeStream.getAudioTracks().forEach(track => track.stop());
         }
         return this;
-    };
+    }
     /**
      * Requests access to the microphone and start recording
      * @return Promise
      */
-    MicRecorder.prototype.start = function () {
-        var _this = this;
+    start() {
         this.context = new AudioContext();
         this.config.sampleRate = this.context.sampleRate;
-        this.lameEncoder = new Encoder(this.config);
-        var audio = { deviceId: { exact: this.config.deviceId } };
-        return new Promise(function (resolve, reject) {
+        if (this.config.encoder === 'mp3') {
+            this.__encoder = new Mp3Encoder(this.config);
+        }
+        else if (this.config.encoder === 'wav') {
+            this.__encoder = new WavEncoder(this.config);
+        }
+        const audio = { deviceId: { exact: this.config.deviceId } };
+        return new Promise((resolve, reject) => {
             navigator.mediaDevices
-                .getUserMedia({ audio: audio })
-                .then(function (stream) {
-                _this.addMicrophoneListener(stream);
+                .getUserMedia({ audio })
+                .then(stream => {
+                this.addMicrophoneListener(stream);
                 resolve(stream);
             })
                 .catch(function (err) {
                 reject(err);
             });
         });
-    };
+    }
     /**
      * Return Mp3 Buffer and Blob with type mp3
      * @return {Promise<[Array<Int8Array>, Blob]>}
      */
-    MicRecorder.prototype.getMp3 = function () {
-        var _this = this;
-        var finalBuffer = this.lameEncoder && this.lameEncoder.finish();
-        return new Promise(function (resolve, reject) {
+    getAudio() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const finalBuffer = this.__encoder && (yield this.__encoder.finish());
             if (finalBuffer && finalBuffer.length === 0) {
-                reject(new Error('No buffer to send'));
+                throw new Error('No buffer to send');
             }
             else if (finalBuffer === null) {
-                reject(new Error('Invalid final buffer'));
+                throw new Error('Invalid final buffer');
             }
             else {
-                var res = [
+                const res = [
                     finalBuffer,
-                    new Blob(finalBuffer, { type: 'audio/mp3' })
+                    new Blob(finalBuffer, { type: `audio/${this.config.encoder}` })
                 ];
-                resolve(res);
-                _this.lameEncoder && _this.lameEncoder.clearBuffer();
+                this.__encoder && this.__encoder.clearBuffer();
+                return res;
             }
         });
-    };
-    return MicRecorder;
-}());
+    }
+}
 ;
 export default MicRecorder;
 //# sourceMappingURL=index.js.map

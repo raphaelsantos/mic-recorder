@@ -1,13 +1,8 @@
 import { Mp3Encoder } from 'lamejs'
-
-interface IConfig {
-  sampleRate?: number
-  bitRate?: number
-}
-
+import { IConfig, IEncoder } from './types'
 type Buffer = Int8Array
 
-class Encoder {
+class Encoder implements IEncoder {
   private config: IConfig = {
     sampleRate: 44100,
     bitRate: 128
@@ -90,7 +85,7 @@ class Encoder {
   /**
    * Return full dataBuffer
    */
-  finish() {
+  async finish() {
     this.appendToBuffer(this.mp3Encoder.flush())
     return this.dataBuffer
   }

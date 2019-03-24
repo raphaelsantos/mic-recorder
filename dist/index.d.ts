@@ -13,6 +13,7 @@ interface IConfig {
     startRecordingAt?: number;
     deviceId?: string;
     sampleRate?: number;
+    encoder?: 'mp3' | 'wav';
 }
 declare class MicRecorder {
     private config;
@@ -22,7 +23,7 @@ declare class MicRecorder {
     private processor;
     private startTime;
     private timerToStart;
-    private lameEncoder;
+    private __encoder;
     constructor(config?: IConfig);
     /**
      * Starts to listen for the microphone sound
@@ -42,6 +43,6 @@ declare class MicRecorder {
      * Return Mp3 Buffer and Blob with type mp3
      * @return {Promise<[Array<Int8Array>, Blob]>}
      */
-    getMp3(): Promise<[Array<Int8Array>, Blob]>;
+    getAudio(): Promise<[Array<Int8Array>, Blob]>;
 }
 export default MicRecorder;
