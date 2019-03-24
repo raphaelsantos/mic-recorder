@@ -29,13 +29,14 @@ class MicRecorder {
     encoder: 'mp3'
   }
   private activeStream: MediaStream | null = null
-  private context: AudioContext | null = null
+  private context: AudioContext
   private microphone: MediaStreamAudioSourceNode | null = null
   private processor: ScriptProcessorNode | null = null
   private startTime: number = 0
   private timerToStart: number = -1
   private __encoder: IEncoder | null = null
   constructor(config?: IConfig) {
+    this.context = new AudioContext()
     if (config) {
       Object.assign(this.config, config)
     }
@@ -53,49 +54,64 @@ class MicRecorder {
       delete this.timerToStart
     }, this.config.startRecordingAt)
 
+    if (!this.context) {
+      throw new Error('Invalid context')
+    }
     // Set up Web Audio API to process data from the media stream (microphone).
-    this.microphone =
-      this.context && this.context.createMediaStreamSource(stream)
+    this.microphone = this.context.createMediaStreamSource(stream)
 
     // Settings a bufferSize of 0 instructs the browser to choose the best bufferSize
-    this.processor = this.context && this.context.createScriptProcessor(0, 1, 1)
-
+    this.processor = this.context.createScriptProcessor(0, 1, 1)
+    if (!this.processor) {
+      throw new Error('Invalid processor')
+    }
     // Add all buffers from LAME into an array.
-    this.processor &&
-      (this.processor.onaudioprocess = (event: AudioProcessingEvent) => {
-        if (this.timerToStart) {
-          return
-        }
-        // Send microphone data to LAME for MP3 encoding while recording.
-        this.__encoder &&
-          this.__encoder.encode(event.inputBuffer.getChannelData(0))
-      })
+    this.processor.onaudioprocess = (event: AudioProcessingEvent) => {
+      if (this.timerToStart) {
+        return
+      }
+      // Send microphone data to LAME for MP3 encoding while recording.
+      if (!this.__encoder) {
+        throw new Error('Invalid internal encoder')
+      }
+      this.__encoder.encode(event.inputBuffer.getChannelData(0))
+    }
 
     // Begin retrieving microphone data.
-    this.microphone && this.processor && this.microphone.connect(this.processor)
-    this.processor &&
-      this.context &&
-      this.processor.connect(this.context.destination)
+    if (!this.microphone) {
+      throw new Error('Invalid microphone')
+    }
+    this.microphone.connect(this.processor)
+    this.processor.connect(this.context.destination)
   }
 
   /**
    * Disconnect microphone, processor and remove activeStream
    */
   stop(): this {
-    if (this.processor && this.microphone) {
-      // Clean up the Web Audio API resources.
-      this.microphone.disconnect()
-      this.processor.disconnect()
-      // If all references using this.context are destroyed, context is closed
-      // automatically. DOMException is fired when trying to close again
-      if (this.context && this.context.state !== 'closed') {
-        this.context.close()
-      }
-      this.processor.onaudioprocess = null
-      // Stop all audio tracks. Also, removes recording icon from chrome tab
-      this.activeStream &&
-        this.activeStream.getAudioTracks().forEach(track => track.stop())
+    if (!this.processor) {
+      throw new Error('Invalid processor')
     }
+    if (!this.context) {
+      throw new Error('Invalid context')
+    }
+    if (!this.activeStream) {
+      throw new Error('Invalid activesteam')
+    }
+    if (!this.microphone) {
+      throw new Error('Invalid microphone')
+    }
+    // Clean up the Web Audio API resources.
+    this.microphone.disconnect()
+    this.processor.disconnect()
+    // If all references using this.context are destroyed, context is closed
+    // automatically. DOMException is fired when trying to close again
+    if (this.context.state !== 'closed') {
+      this.context.close()
+    }
+    this.processor.onaudioprocess = null
+    // Stop all audio tracks. Also, removes recording icon from chrome tab
+    this.activeStream.getAudioTracks().forEach(track => track.stop())
     return this
   }
 
@@ -130,7 +146,10 @@ class MicRecorder {
    * @return {Promise<[Array<Int8Array>, Blob]>}
    */
   async getAudio(): Promise<[Array<Int8Array>, Blob]> {
-    const finalBuffer = this.__encoder && await this.__encoder.finish()
+    if (!this.__encoder) {
+      throw new Error('Invalid encoder')
+    }
+    const finalBuffer = await this.__encoder.finish()
     if (finalBuffer && finalBuffer.length === 0) {
       throw new Error('No buffer to send')
     } else if (finalBuffer === null) {
@@ -140,7 +159,7 @@ class MicRecorder {
         finalBuffer,
         new Blob(finalBuffer, { type: `audio/${this.config.encoder}` })
       ]
-      this.__encoder && this.__encoder.clearBuffer()
+      this.__encoder.clearBuffer()
       return res
     }
   }
