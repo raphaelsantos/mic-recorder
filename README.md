@@ -9,7 +9,7 @@ Written in TypeScript
 ## npm
 
 ```bash
-npm install audio-recorder
+npm install mic-recorder
 ```
 
 # Development
@@ -29,7 +29,7 @@ npm run build
 # How to use
 
 ```js
-const MicRecorder = require('audio-recorder');
+const MicRecorder = require('mic-recorder');
 
 // New instance
 const recorder = new MicRecorder({
