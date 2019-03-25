@@ -25,7 +25,7 @@ class MicRecorder {
     bitRate: 128,
     startRecordingAt: 300,
     deviceId: 'default',
-    sampleRate: 44000,
+    sampleRate: 44100,
     encoder: 'mp3'
   }
   private activeStream: MediaStream | null = null
