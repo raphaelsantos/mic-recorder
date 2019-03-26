@@ -1,4 +1,13 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import WavEncoder from 'wav-encoder';
+import resampler from './resampler';
 class Encoder {
     constructor(config) {
         this.config = {
@@ -17,13 +26,22 @@ class Encoder {
         this.dataBuffer = [];
     }
     finish() {
-        return WavEncoder.encode({
-            sampleRate: this.config.sampleRate,
-            channelData: [
-                Float32Array.from(this.dataBuffer)
-            ]
-        }).then(res => {
-            return Promise.resolve([new Int8Array(res)]);
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let data = Float32Array.from(this.dataBuffer);
+                // 如果并非默认的41000，则需要进行resample
+                if (this.config.sampleRate !== 41000) {
+                    data = yield resampler(new File([data], Date.now() + '.wav'), this.config.sampleRate);
+                }
+                let resBuffer = yield WavEncoder.encode({
+                    sampleRate: this.config.sampleRate,
+                    channelData: [data]
+                });
+                return [new Int8Array(resBuffer)];
+            }
+            catch (error) {
+                throw error;
+            }
         });
     }
 }
