@@ -101,7 +101,7 @@ class MicRecorder {
      */
     start() {
         this.context = new AudioContext();
-        this.config.sampleRate = this.context.sampleRate;
+        // this.config.sampleRate = this.context.sampleRate
         if (this.config.encoder === 'mp3') {
             this.__encoder = new Mp3Encoder(this.config);
         }

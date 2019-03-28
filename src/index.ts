@@ -121,7 +121,7 @@ class MicRecorder {
    */
   start(): Promise<MediaStream> {
     this.context = new AudioContext()
-    this.config.sampleRate = this.context.sampleRate
+    // this.config.sampleRate = this.context.sampleRate
     if (this.config.encoder === 'mp3') {
       this.__encoder = new Mp3Encoder(this.config) as IEncoder
     } else if (this.config.encoder === 'wav') {

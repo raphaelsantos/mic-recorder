@@ -31,9 +31,9 @@ class Encoder {
             try {
                 let data = Float32Array.from(this.dataBuffer);
                 // 如果并非默认的41000，则需要进行resample
-                if (this.config.sampleRate !== 41000) {
+                if (this.config.sampleRate !== 44100) {
                     let inputBuffer = createBuffer(data, {
-                        sampleRate: 41000,
+                        sampleRate: 44100,
                         channels: 1
                     });
                     let resampledBuffer = yield resampler(inputBuffer, this.config.sampleRate);
