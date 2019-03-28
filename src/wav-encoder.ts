@@ -1,6 +1,7 @@
 import { IConfig, IEncoder } from './types'
 import WavEncoder from 'wav-encoder'
 import resampler from './resampler'
+import createBuffer from 'audio-buffer-from'
 
 class Encoder implements IEncoder {
   private config: IConfig = {
@@ -27,7 +28,12 @@ class Encoder implements IEncoder {
       let data = Float32Array.from(this.dataBuffer)
       // 如果并非默认的41000，则需要进行resample
       if (this.config.sampleRate !== 41000) {
-        data = await resampler(new File([data], Date.now() + '.wav'), this.config.sampleRate!)
+        let inputBuffer = createBuffer(data, {
+          sampleRate: 41000,
+          channels: 1
+        })
+        let resampledBuffer = await resampler(inputBuffer, this.config.sampleRate!)
+        data = resampledBuffer.getChannelData(0)
       }
       let resBuffer = await WavEncoder.encode({
         sampleRate: this.config.sampleRate!,

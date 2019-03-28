@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import WavEncoder from 'wav-encoder';
 import resampler from './resampler';
+import createBuffer from 'audio-buffer-from';
 class Encoder {
     constructor(config) {
         this.config = {
@@ -31,7 +32,12 @@ class Encoder {
                 let data = Float32Array.from(this.dataBuffer);
                 // 如果并非默认的41000，则需要进行resample
                 if (this.config.sampleRate !== 41000) {
-                    data = yield resampler(new File([data], Date.now() + '.wav'), this.config.sampleRate);
+                    let inputBuffer = createBuffer(data, {
+                        sampleRate: 41000,
+                        channels: 1
+                    });
+                    let resampledBuffer = yield resampler(inputBuffer, this.config.sampleRate);
+                    data = resampledBuffer.getChannelData(0);
                 }
                 let resBuffer = yield WavEncoder.encode({
                     sampleRate: this.config.sampleRate,

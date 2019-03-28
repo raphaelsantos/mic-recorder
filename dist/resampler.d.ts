@@ -1,1 +1,1 @@
-export default function (inputFile: File, targetSampleRate: number): Promise<Float32Array>;
+export default function resample(sourceAudioBuffer: AudioBuffer, targetSampleRate: number): Promise<AudioBuffer>;
