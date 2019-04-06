@@ -23,7 +23,20 @@ class MicRecorder {
         this.startTime = 0;
         this.timerToStart = -1;
         this.__encoder = null;
-        this.context = new AudioContext();
+        if (AudioContext) {
+            this.context = new AudioContext();
+            // @ts-ignore: 检测是否支持旧版的audioContext
+        }
+        else if (webkitAudioContext) {
+            // @ts-ignore: 检测是否支持旧版的audioContext
+            this.context = new webkitAudioContext();
+        }
+        else {
+            throw new Error('Cannot initlize audio context!');
+        }
+        // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
+        // sample rate to the context sample rate
+        this.config.sampleRate = this.context.sampleRate;
         if (config) {
             Object.assign(this.config, config);
         }
