@@ -25,7 +25,7 @@ class MicRecorder {
     bitRate: 128,
     startRecordingAt: 300,
     deviceId: 'default',
-    sampleRate: 44100,
+    sampleRate: 44100, // default to 44100, but will be changed to the actual used AudioContext samplerate
     encoder: 'mp3'
   }
   private activeStream: MediaStream | null = null
@@ -37,6 +37,9 @@ class MicRecorder {
   private __encoder: IEncoder | null = null
   constructor(config?: IConfig) {
     this.context = new AudioContext()
+    // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
+    // sample rate to the context sample rate
+    this.config.sampleRate = this.context.sampleRate
     if (config) {
       Object.assign(this.config, config)
     }
