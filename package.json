@@ -8,7 +8,7 @@
     "watch": "npx tsc -p . -w",
     "release": "npm run build && git add -A && git commit -m \"auto release\" && npm version minor && git push && npm publish"
   },
-  "repository": "https://github.com/paraself/mp3-recorder.git",
+  "repository": "https://github.com/paraself/mic-recorder.git",
   "author": "Yves Wang <paraself@gmail.com>",
   "contributors": [
     "Vitor Buzinaro <vitor@close.io>"
