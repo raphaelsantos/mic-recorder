@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx tsc -p .",
     "watch": "npx tsc -p . -w",
-    "release": "npm run build && git add -A && git commit -m \"auto release\" && npm version minor && git push && npm publish"
+    "release": "npm run build && git add -A && git commit -m \"auto release\" && npm version minor && git push && npm publish",
+    "clean": "rm -rf node_modules && npm cache clean --force"
   },
   "repository": "https://github.com/paraself/mic-recorder.git",
   "author": "Yves Wang <paraself@gmail.com>",
