@@ -33,10 +33,15 @@ class MicRecorder {
   private startTime: number = 0
   private timerToStart: number = -1
   private __encoder: IEncoder | null = null
+  private __Context?:  {
+    new (contextOptions?: AudioContextOptions | undefined): AudioContext;
+    prototype: AudioContext;
+  }
   constructor(config?: IConfig) {
     // @ts-ignore: 检测是否支持旧版的audioContext
     let Context = window.AudioContext || window.webkitAudioContext
     if (Context) {
+      this.__Context = Context
       this.context = new Context()
     } else {
       throw new Error('Cannot initlize audio context!')
@@ -129,12 +134,7 @@ class MicRecorder {
    */
   start(): Promise<MediaStream> {
     // @ts-ignore: 检测是否支持旧版的audioContext
-    let Context = window.AudioContext || window.webkitAudioContext
-    if (Context) {
-      this.context = new Context()
-    } else {
-      throw new Error('Cannot initlize audio context!')
-    }
+    this.context = new this.__Context()
 
     if (this.config.encoder === 'mp3') {
       this.__encoder = new Mp3Encoder(this.config) as IEncoder
