@@ -20,6 +20,9 @@ interface IConfig {
   encoder?: 'mp3' | 'wav'
 }
 
+// @ts-ignore: 检测是否支持旧版的audioContext
+window.AudioContext = window.AudioContext || window.webkitAudioContext
+
 class MicRecorder {
   private config: IConfig = {
     bitRate: 128,
@@ -45,7 +48,7 @@ class MicRecorder {
     } else {
       throw new Error('Cannot initlize audio context!')
     }
-    
+
     // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
     // sample rate to the context sample rate
     this.config.sampleRate = this.context.sampleRate
@@ -142,7 +145,7 @@ class MicRecorder {
     const audio = { deviceId: { exact: this.config.deviceId } }
     return new Promise((resolve, reject) => {
       navigator.mediaDevices
-        .getUserMedia({ audio })
+        .getUserMedia({ audio: true })
         .then(stream => {
           this.addMicrophoneListener(stream)
           resolve(stream)
