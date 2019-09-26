@@ -19,9 +19,6 @@ interface IConfig {
   encoder?: 'mp3' | 'wav'
 }
 
-// @ts-ignore: 检测是否支持旧版的audioContext
-window.AudioContext = window.AudioContext || window.webkitAudioContext
-
 class MicRecorder {
   private config: IConfig = {
     bitRate: 128,
@@ -37,8 +34,10 @@ class MicRecorder {
   private timerToStart: number = -1
   private __encoder: IEncoder | null = null
   constructor(config?: IConfig) {
-    if (AudioContext) {
-      this.context = new AudioContext()
+    // @ts-ignore: 检测是否支持旧版的audioContext
+    let Context = window.AudioContext || window.webkitAudioContext
+    if (Context) {
+      this.context = new Context()
     } else {
       throw new Error('Cannot initlize audio context!')
     }
@@ -129,8 +128,10 @@ class MicRecorder {
    * @return Promise
    */
   start(): Promise<MediaStream> {
-    if (AudioContext) {
-      this.context = new AudioContext()
+    // @ts-ignore: 检测是否支持旧版的audioContext
+    let Context = window.AudioContext || window.webkitAudioContext
+    if (Context) {
+      this.context = new Context()
     } else {
       throw new Error('Cannot initlize audio context!')
     }
