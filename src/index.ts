@@ -15,7 +15,6 @@ interface IConfig {
    * "click" sound from the output mp3 file.
    */
   startRecordingAt?: number
-  deviceId?: string
   sampleRate?: number
   encoder?: 'mp3' | 'wav'
 }
@@ -27,7 +26,6 @@ class MicRecorder {
   private config: IConfig = {
     bitRate: 128,
     startRecordingAt: 300,
-    deviceId: 'default',
     sampleRate: 44100, // default to 44100, but will be changed to the actual used AudioContext samplerate
     encoder: 'mp3'
   }
@@ -142,7 +140,6 @@ class MicRecorder {
     } else if (this.config.encoder === 'wav') {
       this.__encoder = new WavEncoder(this.config) as IEncoder
     }
-    const audio = { deviceId: { exact: this.config.deviceId } }
     return new Promise((resolve, reject) => {
       navigator.mediaDevices
         .getUserMedia({ audio: true })
