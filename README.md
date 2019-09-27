@@ -29,12 +29,16 @@ npm run build
 # How to use
 
 ```js
-const MicRecorder = require('mic-recorder');
+const MicRecorder = require('mic-recorder').default;
+
+// or
+// import MicRecorder from 'mic-recorder';
 
 // New instance
 const recorder = new MicRecorder({
   bitRate: 128,
-  encoder: 'mp3' // default is mp3, can be wav as well
+  encoder: 'mp3', // default is mp3, can be wav as well
+  sampleRate: 44100, // default is 44100, it can also be set to 16000 and 8000.
 });
 
 // Start recording. Browser will request permission to use your microphone.

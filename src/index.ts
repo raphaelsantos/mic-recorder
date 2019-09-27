@@ -15,7 +15,6 @@ interface IConfig {
    * "click" sound from the output mp3 file.
    */
   startRecordingAt?: number
-  deviceId?: string
   sampleRate?: number
   encoder?: 'mp3' | 'wav'
 }
@@ -24,7 +23,6 @@ class MicRecorder {
   private config: IConfig = {
     bitRate: 128,
     startRecordingAt: 300,
-    deviceId: 'default',
     sampleRate: 44100, // default to 44100, but will be changed to the actual used AudioContext samplerate
     encoder: 'mp3'
   }
@@ -35,17 +33,20 @@ class MicRecorder {
   private startTime: number = 0
   private timerToStart: number = -1
   private __encoder: IEncoder | null = null
+  private __Context?:  {
+    new (contextOptions?: AudioContextOptions | undefined): AudioContext;
+    prototype: AudioContext;
+  }
   constructor(config?: IConfig) {
-    if (AudioContext) {
-      this.context = new AudioContext()
-      // @ts-ignore: 检测是否支持旧版的audioContext
-    } else if (webkitAudioContext) {
-      // @ts-ignore: 检测是否支持旧版的audioContext
-      this.context = new webkitAudioContext() as AudioContext
+    // @ts-ignore: 检测是否支持旧版的audioContext
+    let Context = window.AudioContext || window.webkitAudioContext
+    if (Context) {
+      this.__Context = Context
+      this.context = new Context()
     } else {
       throw new Error('Cannot initlize audio context!')
     }
-    
+
     // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
     // sample rate to the context sample rate
     this.config.sampleRate = this.context.sampleRate
@@ -132,17 +133,17 @@ class MicRecorder {
    * @return Promise
    */
   start(): Promise<MediaStream> {
-    this.context = new AudioContext()
-    // this.config.sampleRate = this.context.sampleRate
+    // @ts-ignore: 检测是否支持旧版的audioContext
+    this.context = new this.__Context()
+
     if (this.config.encoder === 'mp3') {
       this.__encoder = new Mp3Encoder(this.config) as IEncoder
     } else if (this.config.encoder === 'wav') {
       this.__encoder = new WavEncoder(this.config) as IEncoder
     }
-    const audio = { deviceId: { exact: this.config.deviceId } }
     return new Promise((resolve, reject) => {
       navigator.mediaDevices
-        .getUserMedia({ audio })
+        .getUserMedia({ audio: true })
         .then(stream => {
           this.addMicrophoneListener(stream)
           resolve(stream)
