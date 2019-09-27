@@ -13,7 +13,6 @@ class MicRecorder {
         this.config = {
             bitRate: 128,
             startRecordingAt: 300,
-            deviceId: 'default',
             sampleRate: 44100,
             encoder: 'mp3'
         };
@@ -23,13 +22,11 @@ class MicRecorder {
         this.startTime = 0;
         this.timerToStart = -1;
         this.__encoder = null;
-        if (AudioContext) {
-            this.context = new AudioContext();
-            // @ts-ignore: 检测是否支持旧版的audioContext
-        }
-        else if (webkitAudioContext) {
-            // @ts-ignore: 检测是否支持旧版的audioContext
-            this.context = new webkitAudioContext();
+        // @ts-ignore: 检测是否支持旧版的audioContext
+        let Context = window.AudioContext || window.webkitAudioContext;
+        if (Context) {
+            this.__Context = Context;
+            this.context = new Context();
         }
         else {
             throw new Error('Cannot initlize audio context!');
@@ -113,18 +110,17 @@ class MicRecorder {
      * @return Promise
      */
     start() {
-        this.context = new AudioContext();
-        // this.config.sampleRate = this.context.sampleRate
+        // @ts-ignore: 检测是否支持旧版的audioContext
+        this.context = new this.__Context();
         if (this.config.encoder === 'mp3') {
             this.__encoder = new Mp3Encoder(this.config);
         }
         else if (this.config.encoder === 'wav') {
             this.__encoder = new WavEncoder(this.config);
         }
-        const audio = { deviceId: { exact: this.config.deviceId } };
         return new Promise((resolve, reject) => {
             navigator.mediaDevices
-                .getUserMedia({ audio })
+                .getUserMedia({ audio: true })
                 .then(stream => {
                 this.addMicrophoneListener(stream);
                 resolve(stream);

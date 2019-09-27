@@ -11,7 +11,6 @@ interface IConfig {
      * "click" sound from the output mp3 file.
      */
     startRecordingAt?: number;
-    deviceId?: string;
     sampleRate?: number;
     encoder?: 'mp3' | 'wav';
 }
@@ -24,6 +23,7 @@ declare class MicRecorder {
     private startTime;
     private timerToStart;
     private __encoder;
+    private __Context?;
     constructor(config?: IConfig);
     /**
      * Starts to listen for the microphone sound
