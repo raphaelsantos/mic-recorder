@@ -14,7 +14,7 @@ class MicRecorder {
             bitRate: 128,
             startRecordingAt: 300,
             sampleRate: 44100,
-            encoder: 'mp3'
+            encoder: 'mp3',
         };
         this.activeStream = null;
         this.microphone = null;
@@ -29,6 +29,10 @@ class MicRecorder {
             this.context = new Context();
         }
         else {
+            this.log({
+                type: 'error',
+                msg: 'Cannot initlize audio context!'
+            });
             throw new Error('Cannot initlize audio context!');
         }
         // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
@@ -36,6 +40,19 @@ class MicRecorder {
         this.config.sampleRate = this.context.sampleRate;
         if (config) {
             Object.assign(this.config, config);
+        }
+        this.log({
+            type: 'success',
+            msg: '初始化成功!'
+        });
+    }
+    // log方法
+    log(log) {
+        if (this.config.sendLog) {
+            this.config.sendLog(log);
+        }
+        else {
+            console.log(log.msg);
         }
     }
     /**
@@ -49,6 +66,10 @@ class MicRecorder {
             delete this.timerToStart;
         }, this.config.startRecordingAt);
         if (!this.context) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid context!'
+            });
             throw new Error('Invalid context');
         }
         // Set up Web Audio API to process data from the media stream (microphone).
@@ -56,6 +77,10 @@ class MicRecorder {
         // Settings a bufferSize of 0 instructs the browser to choose the best bufferSize
         this.processor = this.context.createScriptProcessor(0, 1, 1);
         if (!this.processor) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid context!'
+            });
             throw new Error('Invalid processor');
         }
         // Add all buffers from LAME into an array.
@@ -65,12 +90,20 @@ class MicRecorder {
             }
             // Send microphone data to LAME for MP3 encoding while recording.
             if (!this.__encoder) {
+                this.log({
+                    type: 'error',
+                    msg: 'Invalid internal encoder!'
+                });
                 throw new Error('Invalid internal encoder');
             }
             this.__encoder.encode(event.inputBuffer.getChannelData(0));
         };
         // Begin retrieving microphone data.
         if (!this.microphone) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid microphone!'
+            });
             throw new Error('Invalid microphone');
         }
         this.microphone.connect(this.processor);
@@ -81,15 +114,31 @@ class MicRecorder {
      */
     stop() {
         if (!this.processor) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid processor!'
+            });
             throw new Error('Invalid processor');
         }
         if (!this.context) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid context!'
+            });
             throw new Error('Invalid context');
         }
         if (!this.activeStream) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid activesteam!'
+            });
             throw new Error('Invalid activesteam');
         }
         if (!this.microphone) {
+            this.log({
+                type: 'error',
+                msg: 'Invalid microphone!'
+            });
             throw new Error('Invalid microphone');
         }
         // Clean up the Web Audio API resources.
@@ -103,6 +152,10 @@ class MicRecorder {
         this.processor.onaudioprocess = null;
         // Stop all audio tracks. Also, removes recording icon from chrome tab
         this.activeStream.getAudioTracks().forEach(track => track.stop());
+        this.log({
+            type: 'success',
+            msg: '录音完成!'
+        });
         return this;
     }
     /**
@@ -118,14 +171,42 @@ class MicRecorder {
         else if (this.config.encoder === 'wav') {
             this.__encoder = new WavEncoder(this.config);
         }
+        const _this = this;
         return new Promise((resolve, reject) => {
             navigator.mediaDevices
                 .getUserMedia({ audio: true })
                 .then(stream => {
+                this.log({
+                    type: 'success',
+                    msg: '开始录音!'
+                });
                 this.addMicrophoneListener(stream);
                 resolve(stream);
             })
                 .catch(function (err) {
+                let msg = '';
+                switch (err.code || err.name) {
+                    case 'PermissionDeniedError':
+                    case 'PERMISSION_DENIED':
+                    case 'NotAllowedError':
+                        msg = '用户拒绝访问麦克风';
+                        break;
+                    case 'NOT_SUPPORTED_ERROR':
+                    case 'NotSupportedError':
+                        msg = '浏览器不支持麦克风';
+                        break;
+                    case 'MANDATORY_UNSATISFIED_ERROR':
+                    case 'MandatoryUnsatisfiedError':
+                        msg = '找不到麦克风设备';
+                        break;
+                    default:
+                        msg = `无法打开麦克风，异常信息: ${err.code || err.name}`;
+                        break;
+                }
+                _this.log({
+                    type: 'error',
+                    msg
+                });
                 reject(err);
             });
         });
@@ -137,13 +218,25 @@ class MicRecorder {
     getAudio() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.__encoder) {
+                this.log({
+                    type: 'error',
+                    msg: '获取音频失败，Invalid encoder'
+                });
                 throw new Error('Invalid encoder');
             }
             const finalBuffer = yield this.__encoder.finish();
             if (finalBuffer && finalBuffer.length === 0) {
+                this.log({
+                    type: 'error',
+                    msg: '获取音频失败，No buffer to send'
+                });
                 throw new Error('No buffer to send');
             }
             else if (finalBuffer === null) {
+                this.log({
+                    type: 'error',
+                    msg: '获取音频失败，Invalid final buffer'
+                });
                 throw new Error('Invalid final buffer');
             }
             else {

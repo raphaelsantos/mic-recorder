@@ -1,3 +1,7 @@
+interface ILog {
+    msg: String;
+    type?: 'success' | 'error';
+}
 interface IConfig {
     /**
      * 128 or 160 kbit/s – mid-range bitrate quality
@@ -13,6 +17,7 @@ interface IConfig {
     startRecordingAt?: number;
     sampleRate?: number;
     encoder?: 'mp3' | 'wav';
+    sendLog?: (log: ILog) => void;
 }
 declare class MicRecorder {
     private config;
@@ -24,6 +29,7 @@ declare class MicRecorder {
     private timerToStart;
     private __encoder;
     private __Context?;
+    private log;
     constructor(config?: IConfig);
     /**
      * Starts to listen for the microphone sound
