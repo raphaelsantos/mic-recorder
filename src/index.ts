@@ -4,7 +4,7 @@ import { IEncoder } from './types'
 
 interface ILog {
   msg: String
-  type?: String
+  type?: 'success' | 'error'
 }
 
 interface IConfig {
@@ -64,10 +64,6 @@ class MicRecorder {
       })
       throw new Error('Cannot initlize audio context!')
     }
-    this.log({
-      type: 'success',
-      msg: '初始化成功!'
-    })
 
     // TODO: because lamejs does not support mp3 resamping now, so it's required to set the input
     // sample rate to the context sample rate
@@ -75,6 +71,10 @@ class MicRecorder {
     if (config) {
       Object.assign(this.config, config)
     }
+    this.log({
+      type: 'success',
+      msg: '初始化成功!'
+    })
   }
 
   /**
